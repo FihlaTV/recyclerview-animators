@@ -45,13 +45,13 @@ public class OvershootInRightAnimator extends BaseItemAnimator {
     ViewCompat.setTranslationX(holder.itemView, holder.itemView.getRootView().getWidth());
   }
 
-  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder) {
+  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder, long startDelay) {
     ViewCompat.animate(holder.itemView)
         .translationX(0)
         .setDuration(getAddDuration())
         .setInterpolator(new OvershootInterpolator(mTension))
         .setListener(new DefaultAddVpaListener(holder))
-        .setStartDelay(getAddDelay(holder))
+        .setStartDelay(startDelay + getAddDelay(holder))
         .start();
   }
 }

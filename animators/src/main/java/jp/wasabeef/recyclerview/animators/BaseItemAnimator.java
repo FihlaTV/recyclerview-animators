@@ -125,22 +125,12 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
       moves.addAll(mPendingMoves);
       mMovesList.add(moves);
       mPendingMoves.clear();
-      Runnable mover = new Runnable() {
-        @Override public void run() {
-          for (MoveInfo moveInfo : moves) {
-            animateMoveImpl(moveInfo.holder, moveInfo.fromX, moveInfo.fromY, moveInfo.toX,
-                moveInfo.toY);
-          }
-          moves.clear();
-          mMovesList.remove(moves);
-        }
-      };
-      if (removalsPending) {
-        View view = moves.get(0).holder.itemView;
-        ViewCompat.postOnAnimationDelayed(view, mover, getRemoveDuration());
-      } else {
-        mover.run();
+      for (MoveInfo moveInfo : moves) {
+        animateMoveImpl(moveInfo.holder, moveInfo.fromX, moveInfo.fromY, moveInfo.toX,
+                moveInfo.toY, removalsPending ? getRemoveDuration() : 0L);
       }
+      moves.clear();
+      mMovesList.remove(moves);
     }
     // Next, change stuff, to run in parallel with move animations
     if (changesPending) {
@@ -148,21 +138,11 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
       changes.addAll(mPendingChanges);
       mChangesList.add(changes);
       mPendingChanges.clear();
-      Runnable changer = new Runnable() {
-        @Override public void run() {
-          for (ChangeInfo change : changes) {
-            animateChangeImpl(change);
-          }
-          changes.clear();
-          mChangesList.remove(changes);
-        }
-      };
-      if (removalsPending) {
-        ViewHolder holder = changes.get(0).oldHolder;
-        ViewCompat.postOnAnimationDelayed(holder.itemView, changer, getRemoveDuration());
-      } else {
-        changer.run();
+      for (ChangeInfo change : changes) {
+        animateChangeImpl(change, removalsPending ? getRemoveDuration() : 0L);
       }
+      changes.clear();
+      mChangesList.remove(changes);
     }
     // Next, add stuff
     if (additionsPending) {
@@ -170,25 +150,15 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
       additions.addAll(mPendingAdditions);
       mAdditionsList.add(additions);
       mPendingAdditions.clear();
-      Runnable adder = new Runnable() {
-        public void run() {
-          for (ViewHolder holder : additions) {
-            doAnimateAdd(holder);
-          }
-          additions.clear();
-          mAdditionsList.remove(additions);
-        }
-      };
-      if (removalsPending || movesPending || changesPending) {
-        long removeDuration = removalsPending ? getRemoveDuration() : 0;
-        long moveDuration = movesPending ? getMoveDuration() : 0;
-        long changeDuration = changesPending ? getChangeDuration() : 0;
-        long totalDelay = removeDuration + Math.max(moveDuration, changeDuration);
-        View view = additions.get(0).itemView;
-        ViewCompat.postOnAnimationDelayed(view, adder, totalDelay);
-      } else {
-        adder.run();
+      long removeDuration = removalsPending ? getRemoveDuration() : 0;
+      long moveDuration = movesPending ? getMoveDuration() : 0;
+      long changeDuration = changesPending ? getChangeDuration() : 0;
+      long totalDelay = removeDuration + Math.max(moveDuration, changeDuration);
+      for (ViewHolder holder : additions) {
+        doAnimateAdd(holder, totalDelay);
       }
+      additions.clear();
+      mAdditionsList.remove(additions);
     }
   }
 
@@ -200,7 +170,7 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
 
   protected abstract void animateRemoveImpl(final RecyclerView.ViewHolder holder);
 
-  protected abstract void animateAddImpl(final RecyclerView.ViewHolder holder);
+  protected abstract void animateAddImpl(final RecyclerView.ViewHolder holder, long startDelay);
 
   private void preAnimateRemove(final RecyclerView.ViewHolder holder) {
     ViewHelper.clear(holder.itemView);
@@ -232,11 +202,11 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
     mRemoveAnimations.add(holder);
   }
 
-  private void doAnimateAdd(final RecyclerView.ViewHolder holder) {
+  private void doAnimateAdd(final RecyclerView.ViewHolder holder, long startDelay) {
     if (holder instanceof AnimateViewHolder) {
-      ((AnimateViewHolder) holder).animateAddImpl(new DefaultAddVpaListener(holder));
+      ((AnimateViewHolder) holder).animateAddImpl(new DefaultAddVpaListener(holder), startDelay);
     } else {
-      animateAddImpl(holder);
+      animateAddImpl(holder, startDelay);
     }
 
     mAddAnimations.add(holder);
@@ -286,7 +256,8 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
     return true;
   }
 
-  private void animateMoveImpl(final ViewHolder holder, int fromX, int fromY, int toX, int toY) {
+  private void animateMoveImpl(final ViewHolder holder, int fromX, int fromY, int toX, int toY,
+      long startDelay) {
     final View view = holder.itemView;
     final int deltaX = toX - fromX;
     final int deltaY = toY - fromY;
@@ -321,7 +292,7 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
         mMoveAnimations.remove(holder);
         dispatchFinishedWhenDone();
       }
-    }).start();
+    }).setStartDelay(startDelay).start();
   }
 
   @Override
@@ -348,7 +319,7 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
     return true;
   }
 
-  private void animateChangeImpl(final ChangeInfo changeInfo) {
+  private void animateChangeImpl(final ChangeInfo changeInfo, long startDelay) {
     final ViewHolder holder = changeInfo.oldHolder;
     final View view = holder == null ? null : holder.itemView;
     final ViewHolder newHolder = changeInfo.newHolder;
@@ -373,7 +344,7 @@ public abstract class BaseItemAnimator extends SimpleItemAnimator {
           mChangeAnimations.remove(changeInfo.oldHolder);
           dispatchFinishedWhenDone();
         }
-      }).start();
+      }).setStartDelay(startDelay).start();
     }
     if (newView != null) {
       mChangeAnimations.add(changeInfo.newHolder);

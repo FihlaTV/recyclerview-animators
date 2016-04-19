@@ -47,7 +47,7 @@ public class LandingAnimator extends BaseItemAnimator {
     ViewCompat.setScaleY(holder.itemView, 1.5f);
   }
 
-  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder) {
+  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder, long startDelay) {
     ViewCompat.animate(holder.itemView)
         .alpha(1)
         .scaleX(1)
@@ -55,7 +55,7 @@ public class LandingAnimator extends BaseItemAnimator {
         .setDuration(getAddDuration())
         .setInterpolator(mInterpolator)
         .setListener(new DefaultAddVpaListener(holder))
-        .setStartDelay(getAddDelay(holder))
+        .setStartDelay(startDelay + getAddDelay(holder))
         .start();
   }
 }

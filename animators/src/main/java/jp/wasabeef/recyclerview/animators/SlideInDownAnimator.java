@@ -46,14 +46,14 @@ public class SlideInDownAnimator extends BaseItemAnimator {
     ViewCompat.setAlpha(holder.itemView, 0);
   }
 
-  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder) {
+  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder, long startDelay) {
     ViewCompat.animate(holder.itemView)
         .translationY(0)
         .alpha(1)
         .setDuration(getAddDuration())
         .setInterpolator(mInterpolator)
         .setListener(new DefaultAddVpaListener(holder))
-        .setStartDelay(getAddDelay(holder))
+        .setStartDelay(startDelay + getAddDelay(holder))
         .start();
   }
 }

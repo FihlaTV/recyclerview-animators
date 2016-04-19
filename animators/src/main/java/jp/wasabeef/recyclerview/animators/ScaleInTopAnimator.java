@@ -54,14 +54,14 @@ public class ScaleInTopAnimator extends BaseItemAnimator {
     ViewCompat.setScaleY(holder.itemView, 0);
   }
 
-  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder) {
+  @Override protected void animateAddImpl(final RecyclerView.ViewHolder holder, long startDelay) {
     ViewCompat.animate(holder.itemView)
         .scaleX(1)
         .scaleY(1)
         .setDuration(getAddDuration())
         .setInterpolator(mInterpolator)
         .setListener(new DefaultAddVpaListener(holder))
-        .setStartDelay(getAddDelay(holder))
+        .setStartDelay(startDelay + getAddDelay(holder))
         .start();
   }
 }

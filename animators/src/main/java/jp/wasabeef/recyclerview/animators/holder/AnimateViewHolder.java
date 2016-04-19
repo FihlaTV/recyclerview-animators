@@ -16,7 +16,7 @@ public abstract class AnimateViewHolder extends RecyclerView.ViewHolder {
   public void preAnimateRemoveImpl() {
   }
 
-  public abstract void animateAddImpl(ViewPropertyAnimatorListener listener);
+  public abstract void animateAddImpl(ViewPropertyAnimatorListener listener, long startDelay);
 
   public abstract void animateRemoveImpl(ViewPropertyAnimatorListener listener);
 }
